@@ -2,6 +2,12 @@
 
 A solo adventure on Haskell with parsers
 
+The initial purpose of this project is to be able to successfully and completely parse stuff from Feedly's API
+So initially I'll be working on a JSON file.
+Next target will be to fetch JSON directly from API, maybe persist it somewhere for convenience and then process that input.
+
+----
+
 to test it out, run `stack ghci` and then you can play with your json output:
 
 ```
