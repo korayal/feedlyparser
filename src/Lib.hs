@@ -13,7 +13,7 @@ import qualified Data.ByteString.Lazy as B
 
 data FeedItem = FeedItem
     { title :: String
-    , engagement :: Maybe Integer
+    , engagement :: Integer
     , published :: UTCTime
     , crawled :: UTCTime
     } deriving ((((Show))))
@@ -23,7 +23,8 @@ data FeedList = FeedList { items :: [FeedItem]} deriving (Show)
 instance FromJSON FeedItem where
   parseJSON = withObject "Feed Item" $ \o ->
                 FeedItem <$> o .: "title"
-                         <*> o .:? "engagement"
+                         -- set engagement to 0 if empty
+                         <*> o .:? "engagement" .!= 0
                          <*> (posixSecondsToUTCTime . (/ 1000) . fromInteger <$> o .: "published")
                          <*> (posixSecondsToUTCTime . (/ 1000) . fromInteger <$> o .: "crawled")
 
