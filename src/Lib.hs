@@ -17,6 +17,7 @@ data FeedItem = FeedItem
     , published :: UTCTime
     , crawled :: UTCTime
     } deriving ((((Show))))
+
 data FeedList = FeedList { items :: [FeedItem]} deriving (Show)
 
 instance FromJSON FeedItem where
