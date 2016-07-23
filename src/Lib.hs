@@ -101,7 +101,7 @@ instance FromJSON FeedItem where
                          <*> (alternateList . FeedAlternateList <$> o .: "alternate")
                          <*> o .: "origin"
                          <*> o .: "summary"
-                         <*> (o .:? "visual")
+                         <*> o .:? "visual"
                          <*> o .: "unread"
                          <*> (categoryList . FeedCategoryList <$> o .: "categories")
                          <*> o .:? "engagement" .!= 0

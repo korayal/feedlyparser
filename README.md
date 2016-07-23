@@ -9,8 +9,7 @@ Next target will be to fetch JSON directly from API, maybe persist it somewhere 
 ----
 
 to test it out, 
-run `stack exec fp -- "hn.json"`
-or in `stack ghci` and then you can play with your json output:
+run `stack exec fp -- "hn.json"` or in `stack ghci` and then you can play with your json output:
 
 ``` haskell
 *Main Lib> Right x <- feedList "hn.json" 
