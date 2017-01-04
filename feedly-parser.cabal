@@ -15,11 +15,17 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
+  exposed-modules:     Types
+                     , API
   build-depends:       base >= 4.7 && < 5
                      , aeson
+                     , servant
+                     , servant-server
                      , bytestring
+                     , text
                      , time
+                     , either
+                     , transformers
   default-language:    Haskell2010
 
 executable fp
@@ -28,6 +34,8 @@ executable fp
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , feedly-parser
+                     , wai
+                     , warp
   default-language:    Haskell2010
 
 test-suite feedly-parser-test

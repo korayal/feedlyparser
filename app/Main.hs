@@ -1,10 +1,7 @@
 module Main where
 
-import Lib
-import System.Environment (getArgs)
+import API
+import Network.Wai.Handler.Warp (run)
 
 main :: IO ()
-main = do
-  args <- getArgs
-  Right x <- feedList (head args)
-  print $ head $ items x
+main = run 8080 app

@@ -1,23 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 
-module Lib
+module Types
     ( feedList,
       FeedList(..),
       FeedItem(..)
     ) where
 
+import GHC.Generics
 import Data.Aeson
 import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX
 import qualified Data.ByteString.Lazy as B
+import Control.Monad.Trans.Except
 
 data FeedAlternate = FeedAlternate
   { href :: String
   , _type :: String
-  } deriving (Show)
+  } deriving (Generic, Show)
 
-newtype FeedAlternateList = FeedAlternateList { alternateList :: [FeedAlternate] } deriving (Show)
+newtype FeedAlternateList = FeedAlternateList { alternateList :: [FeedAlternate] } deriving (Generic, Show)
 
+instance ToJSON FeedAlternate
 instance FromJSON FeedAlternate where
   parseJSON = withObject "Feed Alternate" $ \o ->
                 FeedAlternate <$> o .: "href"
@@ -27,8 +31,9 @@ data FeedOrigin = FeedOrigin
   { streamId :: String
   , foTitle :: String
   , htmlUrl :: String
-  } deriving (Show)
+  } deriving (Generic, Show)
 
+instance ToJSON FeedOrigin
 instance FromJSON FeedOrigin where
   parseJSON = withObject "Feed Origin" $ \o ->
                 FeedOrigin <$> o .: "streamId"
@@ -38,8 +43,9 @@ instance FromJSON FeedOrigin where
 data FeedSummary = FeedSummary
   { content :: String
   , direction :: String
-  } deriving (Show)
+  } deriving (Generic, Show)
 
+instance ToJSON FeedSummary
 instance FromJSON FeedSummary where
   parseJSON = withObject "Feed Summary" $ \o ->
                 FeedSummary <$> o .: "content"
@@ -51,8 +57,9 @@ data FeedVisual = FeedVisual
   , height :: Integer
   , processor :: String
   , contentType :: String
-  } deriving (Show)
+  } deriving (Generic, Show)
 
+instance ToJSON FeedVisual
 instance FromJSON FeedVisual where
   parseJSON = withObject "Feed Visual" $ \o ->
                 FeedVisual <$> o .: "url"
@@ -64,14 +71,16 @@ instance FromJSON FeedVisual where
 data FeedCategory = FeedCategory
   { fcid :: String
   , fclabel :: String
-  } deriving (Show)
+  } deriving (Generic, Show)
 
-newtype FeedCategoryList = FeedCategoryList { categoryList :: [FeedCategory] } deriving (Show)
-
+instance ToJSON FeedCategory
 instance FromJSON FeedCategory where
   parseJSON = withObject "Feed Category" $ \o ->
                 FeedCategory <$> o .: "id"
                              <*> o .: "label"
+
+newtype FeedCategoryList = FeedCategoryList { categoryList :: [FeedCategory] } deriving (Generic, Show)
+
 
 data FeedItem = FeedItem
     { id :: String
@@ -88,8 +97,9 @@ data FeedItem = FeedItem
     , categories :: [FeedCategory]
     , engagement :: Integer
     , engagementRate :: Integer
-    } deriving (Show)
+    } deriving (Generic, Show)
 
+instance ToJSON FeedItem
 instance FromJSON FeedItem where
   parseJSON = withObject "Feed Item" $ \o ->
                 FeedItem <$> o .: "id"
@@ -107,11 +117,14 @@ instance FromJSON FeedItem where
                          <*> o .:? "engagement" .!= 0
                          <*> o .:? "engagementRate" .!= 0
 
-data FeedList = FeedList { items :: [FeedItem]} deriving (Show)
+data FeedList = FeedList { items :: [FeedItem]} deriving (Generic, Show)
 
+instance ToJSON FeedList
 instance FromJSON FeedList where
   parseJSON = withObject "Feed List" $ \o ->
                 FeedList <$> o .: "items"
 
-feedList :: FilePath -> IO (Either String FeedList)
-feedList p = eitherDecode <$> B.readFile p
+feedList :: FilePath -> IO (Except String FeedList)
+feedList p = do
+  f <- B.readFile p
+  return $ (except . eitherDecode) f
