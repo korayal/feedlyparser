@@ -2,14 +2,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Types
-    ( feedList,
-      FeedList(..),
+    ( FeedList(..),
       FeedItem(..)
     ) where
 
-import           Control.Monad.Trans.Except
 import           Data.Aeson
-import qualified Data.ByteString.Lazy       as B
 import           Data.Time.Clock            (UTCTime)
 import           Data.Time.Clock.POSIX
 import           GHC.Generics
@@ -123,8 +120,3 @@ instance ToJSON FeedList
 instance FromJSON FeedList where
   parseJSON = withObject "Feed List" $ \o ->
                 FeedList <$> o .: "items"
-
-feedList :: FilePath -> IO (Except String FeedList)
-feedList p = do
-  f <- B.readFile p
-  return $ (except . eitherDecode) f

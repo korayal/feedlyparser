@@ -20,3 +20,7 @@ output at one of these urls via the help of [jq](https://stedolan.github.io/jq/)
 here is an example:
 
 ![](images/feedlyparser.gif)
+
+There is also another demo API called Numbers:
+
+![](images/numbers.gif)
