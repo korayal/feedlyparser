@@ -13,9 +13,9 @@ to test it out,
 run `stack exec fp` or in `stack ghci` and then you can play with your json
 output at one of these urls via the help of [jq](https://stedolan.github.io/jq/):
 
-"http://localhost:8080/hn/list"
-"http://localhost:8080/hn/list/titles"
-"http://localhost:8080/hn/list/:minEngagement"
+- http://localhost:8080/hn/list
+- http://localhost:8080/hn/list/titles
+- http://localhost:8080/hn/list/:minEngagement
 
 here is an example:
 
