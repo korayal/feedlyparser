@@ -1,5 +1,5 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE DeriveGeneric #-}
 
 module Types
     ( feedList,
@@ -7,15 +7,15 @@ module Types
       FeedItem(..)
     ) where
 
-import GHC.Generics
-import Data.Aeson
-import Data.Time.Clock (UTCTime)
-import Data.Time.Clock.POSIX
-import qualified Data.ByteString.Lazy as B
-import Control.Monad.Trans.Except
+import           Control.Monad.Trans.Except
+import           Data.Aeson
+import qualified Data.ByteString.Lazy       as B
+import           Data.Time.Clock            (UTCTime)
+import           Data.Time.Clock.POSIX
+import           GHC.Generics
 
 data FeedAlternate = FeedAlternate
-  { href :: String
+  { href  :: String
   , _type :: String
   } deriving (Generic, Show)
 
@@ -29,8 +29,8 @@ instance FromJSON FeedAlternate where
 
 data FeedOrigin = FeedOrigin
   { streamId :: String
-  , foTitle :: String
-  , htmlUrl :: String
+  , foTitle  :: String
+  , htmlUrl  :: String
   } deriving (Generic, Show)
 
 instance ToJSON FeedOrigin
@@ -41,7 +41,7 @@ instance FromJSON FeedOrigin where
                            <*> o .: "htmlUrl"
 
 data FeedSummary = FeedSummary
-  { content :: String
+  { content   :: String
   , direction :: String
   } deriving (Generic, Show)
 
@@ -52,10 +52,10 @@ instance FromJSON FeedSummary where
                             <*> o .: "direction"
 
 data FeedVisual = FeedVisual
-  { url :: String
-  , width :: Integer
-  , height :: Integer
-  , processor :: String
+  { url         :: String
+  , width       :: Integer
+  , height      :: Integer
+  , processor   :: String
   , contentType :: String
   } deriving (Generic, Show)
 
@@ -69,7 +69,7 @@ instance FromJSON FeedVisual where
                            <*> (o .:? "contentType" .!= "")
 
 data FeedCategory = FeedCategory
-  { fcid :: String
+  { fcid    :: String
   , fclabel :: String
   } deriving (Generic, Show)
 
@@ -83,19 +83,19 @@ newtype FeedCategoryList = FeedCategoryList { categoryList :: [FeedCategory] } d
 
 
 data FeedItem = FeedItem
-    { id :: String
-    , originId :: String
-    , fingerprint :: String
-    , title :: String
-    , published :: UTCTime
-    , crawled :: UTCTime
-    , alternate :: [FeedAlternate]
-    , origin :: FeedOrigin
-    , summary :: FeedSummary
-    , visual :: Maybe FeedVisual
-    , unread :: Bool
-    , categories :: [FeedCategory]
-    , engagement :: Integer
+    { id             :: String
+    , originId       :: String
+    , fingerprint    :: String
+    , title          :: String
+    , published      :: UTCTime
+    , crawled        :: UTCTime
+    , alternate      :: [FeedAlternate]
+    , origin         :: FeedOrigin
+    , summary        :: FeedSummary
+    , visual         :: Maybe FeedVisual
+    , unread         :: Bool
+    , categories     :: [FeedCategory]
+    , engagement     :: Integer
     , engagementRate :: Integer
     } deriving (Generic, Show)
 
