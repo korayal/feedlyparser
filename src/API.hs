@@ -1,84 +1,48 @@
+{-# LANGUAGE FlexibleContexts           #-}
 {-# LANGUAGE DataKinds                  #-}
-{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TypeOperators              #-}
 
 module API
-  ( app
-  , FeedlyAPI) where
+       (app) where
 
-import           Control.Concurrent.STM      (atomically)
-import           Control.Concurrent.STM.TVar (TVar, modifyTVar, newTVarIO,
-                                              readTVar, readTVarIO)
 import           Control.Monad.IO.Class      (liftIO)
-import           Control.Monad.Trans.Except  (Except, except, runExcept)
-import           Data.Aeson
-import qualified Data.ByteString.Lazy        as B
-import           Data.List                   (sortBy)
+import           Control.Concurrent.STM      (atomically)
+import           Control.Concurrent.STM.TVar
+import           Control.Monad.Reader
 import           Servant
 import           Servant.API
-import           Servant.Server              (Application, Server, serve)
-import           System.IO.Unsafe            (unsafeInterleaveIO,
-                                              unsafePerformIO)
-import           Types                       (FeedItem, FeedList, engagement,
-                                              items, title)
--- FEEDLY API
-type FeedlyAPI = "hn" :> "list" :> (
-    Get '[JSON] FeedList
-    :<|> "titles" :> Get '[JSON] [String]
-    :<|> Capture "minEngagement" Integer :> Get '[JSON] [(Integer, FeedItem)]
-  )
-
-feedList :: FilePath -> IO (TVar FeedList)
-feedList p = do
-  f <- B.readFile p
-  case eitherDecode f of
-    Left _   -> error "input file is not a valid json"
-    Right fl -> (newTVarIO fl)
-
-fl :: TVar FeedList
-fl = (unsafePerformIO . unsafeInterleaveIO) (feedList "hn.json")
-
-feedlyServer :: Server FeedlyAPI
-feedlyServer = feedlist :<|> titlesOnly :<|> titleEngagement
-  where
-    feedlist = liftIO (readTVarIO fl)
-    titlesOnly = feedlist >>= (return . map title . items)
-    titleEngagement a = feedlist >>= (
-          return
-          . map (\x -> (engagement x, x))
-          . filter (\x -> engagement x > a)
-          . sortBy (\x y -> (engagement y) `compare` (engagement x))
-          . items
-        )
-
--- Numbers API
-type NumbersAPI = "numbers" :> (
-    Get '[JSON] [Integer]
-    :<|> Capture "number" Integer :> Put '[JSON] NoContent
-    :<|> Capture "number" Integer :> Delete '[JSON] NoContent
-    :<|> ReqBody '[JSON] [Integer] :> Post '[JSON] NoContent
-  )
-
-il :: TVar [Integer]
-il = (unsafePerformIO . unsafeInterleaveIO) (newTVarIO ([] :: [Integer]))
-
-numbersServer :: Server NumbersAPI
-numbersServer = listNumbers :<|> putNumber :<|> deleteNumber :<|> addBulkNumbers
-  where
-    listNumbers = (liftIO . readTVarIO) il
-    putNumber newNumber = (liftIO . atomically . modifyTVar il) (newNumber :) >> return NoContent
-    deleteNumber newNumber = (liftIO . atomically . modifyTVar il) (filter (/= newNumber)) >> return NoContent
-    addBulkNumbers numbers = (liftIO . atomically . modifyTVar il) (numbers ++) >> return NoContent
+import qualified Servant.Server              as SS
+import qualified Control.Monad.Trans.Except  as Ex
+-- Local Libs
+import qualified Combo                       as C
+import Types
+import FeedlyAPI
+import NumbersAPI
 
 type AppAPI = FeedlyAPI :<|> NumbersAPI
+
+appServer
+    :: (MonadReader C.ComboState m, MonadIO m)
+    => SS.ServerT AppAPI m
+appServer = feedlyServer :<|> numbersServer
+
+appServer' :: C.ComboState -> SS.Server AppAPI
+appServer' cs = SS.enter (transformStack cs) appServer
 
 api :: Proxy AppAPI
 api = Proxy
 
-appServer :: Server AppAPI
-appServer = feedlyServer :<|> numbersServer
+app :: C.ComboState -> Application
+app cs = SS.serve api (appServer' cs)
 
-app :: Application
-app = serve api appServer
+transformStack
+    :: Functor m
+    => C.ComboState -> C.Combo m :~> Ex.ExceptT ServantErr m
+transformStack cs = Nat (transformStack' cs)
+
+transformStack'
+    :: Functor m
+    => C.ComboState -> C.Combo m a -> Ex.ExceptT ServantErr m a
+transformStack' cs m = Ex.ExceptT (Right <$> C.runCombo cs m)

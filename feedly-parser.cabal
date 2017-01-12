@@ -16,6 +16,9 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Types
+                     , Combo
+                     , FeedlyAPI
+                     , NumbersAPI
                      , API
   build-depends:       base >= 4.7 && < 5
                      , aeson
@@ -27,6 +30,7 @@ library
                      , either
                      , transformers
                      , stm
+                     , mtl
   default-language:    Haskell2010
 
 executable fp
